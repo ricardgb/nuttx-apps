@@ -60,6 +60,22 @@ config NETUTILS_MDNS_STACKSIZE
 config NETUTILS_MDNS_VERBOSE
 	bool "Enable verbose printf output from built-in mdns demo"
 	default y
+
+config NETUTILS_MDNS_BIND_IFNAME
+	string "Restrict mDNS to a single network interface"
+	default ""
+	---help---
+		If set to a network interface name (e.g. "eth0"), the mDNS responder
+		advertises and answers queries ONLY on that interface, and puts that
+		interface's address in the advertised A record.  All other interfaces
+		(e.g. a WiFi station) are ignored.
+
+		This is useful for a device that is reachable by name over a local
+		USB/Ethernet NIC but must not broadcast its presence onto an upstream
+		WiFi network.
+
+		Leave empty (the default) to advertise on every eligible interface,
+		which is the upstream library behaviour.
 endif
 
 config NETUTILS_MDNS_DAEMON

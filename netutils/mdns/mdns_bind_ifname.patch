@@ -1,0 +1,48 @@
+--- mdns/mdns.c
++++ mdns/mdns.c
+@@ -578,6 +578,15 @@
+ 	for (ifa = ifaddr; ifa; ifa = ifa->ifa_next) {
+ 		if (!ifa->ifa_addr)
+ 			continue;
++#ifdef CONFIG_NETUTILS_MDNS_BIND_IFNAME
++		// If a bind interface is configured, only consider that interface so
++		// the service address and multicast sockets are pinned to it (e.g. a
++		// USB NIC) and never a WiFi station.
++		if (CONFIG_NETUTILS_MDNS_BIND_IFNAME[0] != '\0' &&
++		    (!ifa->ifa_name ||
++		     strcmp(ifa->ifa_name, CONFIG_NETUTILS_MDNS_BIND_IFNAME) != 0))
++			continue;
++#endif
+ 		if (!(ifa->ifa_flags & IFF_UP) || !(ifa->ifa_flags & IFF_MULTICAST))
+ 			continue;
+ 		if ((ifa->ifa_flags & IFF_LOOPBACK) || (ifa->ifa_flags & IFF_POINTOPOINT))
+@@ -675,6 +684,14 @@
+ #else
+ 		sock_addr.sin_addr.s_addr = INADDR_ANY;
+ #endif
++#ifdef CONFIG_NETUTILS_MDNS_BIND_IFNAME
++		// Pin the responder to the configured interface: pass its address so
++		// mdns_socket_setup_ipv4() sets IP_MULTICAST_IF and joins the group on
++		// that interface only (it still bind()s to INADDR_ANY internally, so
++		// multicast reception keeps working).
++		if (CONFIG_NETUTILS_MDNS_BIND_IFNAME[0] != '\0' && has_ipv4)
++			sock_addr.sin_addr = service_address_ipv4.sin_addr;
++#endif
+ 		sock_addr.sin_port = htons(MDNS_PORT);
+ #ifdef __APPLE__
+ 		sock_addr.sin_len = sizeof(struct sockaddr_in);
+@@ -684,7 +701,13 @@
+ 			sockets[num_sockets++] = sock;
+ 	}
+ 
+-	if (num_sockets < max_sockets) {
++	if (num_sockets < max_sockets
++#ifdef CONFIG_NETUTILS_MDNS_BIND_IFNAME
++	    // Skip IPv6 when pinned to one interface so the responder never
++	    // answers on any other (e.g. WiFi) interface via IPv6.
++	    && CONFIG_NETUTILS_MDNS_BIND_IFNAME[0] == '\0'
++#endif
++	   ) {
+ 		struct sockaddr_in6 sock_addr;
+ 		memset(&sock_addr, 0, sizeof(struct sockaddr_in6));
+ 		sock_addr.sin6_family = AF_INET6;

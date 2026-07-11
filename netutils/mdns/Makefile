@@ -59,6 +59,8 @@ $(MDNS_UNPACKNAME): $(MDNS_ZIP)
 	$(Q) mv	mdns-$(MDNS_VERSION) $(MDNS_UNPACKNAME)
 	$(Q) cp $(MDNS_UNPACKNAME)$(DELIM)mdns.h $(APPS_INCDIR)
 	$(Q) patch -p0 < verbose_option.patch # Update to enable non-verbose mode
+	$(Q) patch -p0 < mdns_main_rename.patch # Rename main() to the mdns_main builtin symbol
+	$(Q) patch -p0 < mdns_bind_ifname.patch # Optional single-interface bind (NETUTILS_MDNS_BIND_IFNAME)
 	$(Q) touch $(MDNS_UNPACKNAME)
 
 clean::
