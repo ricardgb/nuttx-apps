@@ -1,0 +1,6 @@
+config EXAMPLES_PORTALUP
+	tristate "Access-device boot helper (wlan0 ifup + mDNS)"
+	default n
+	depends on NETUTILS_NETLIB
+	---help---
+		Boot helper that brings up wlan0 and starts the mDNS responder.

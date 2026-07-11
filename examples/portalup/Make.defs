@@ -1,0 +1,3 @@
+ifneq ($(CONFIG_EXAMPLES_PORTALUP),)
+CONFIGURED_APPS += $(APPDIR)/examples/portalup
+endif
